@@ -1,0 +1,14 @@
+{
+  "user_exists": "User already exists ❌",
+  "admin_created": "Workshop admin created ✅",
+  "superadmin_created": "Superadmin created ✅",
+  "user_created": "Sub-user registered ✅",
+  "atelier_required": "atelierId required ❌",
+  "user_not_found": "User not found ❌",
+  "wrong_password": "Incorrect password ❌",
+  "login_success": "Login successful ✅",
+  "logout_success": "Logout successful ✅",
+  "server_error": "Server error ❌",
+  "invalid_language": "Invalid language ❌",
+  "language_updated": "Language updated ✅"
+}

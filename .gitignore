@@ -1,0 +1,6 @@
+node_modules/
+.en
+uploads/
+*log
+dist/
+build/

@@ -1,0 +1,14 @@
+{
+  "user_exists": "المستخدم موجود بالفعل ❌",
+  "admin_created": "تم إنشاء مدير الورشة ✅",
+  "superadmin_created": "تم إنشاء المشرف العام ✅",
+  "user_created": "تم تسجيل المستخدم الفرعي ✅",
+  "atelier_required": "معرف الورشة مطلوب ❌",
+  "user_not_found": "المستخدم غير موجود ❌",
+  "wrong_password": "كلمة المرور غير صحيحة ❌",
+  "login_success": "تم تسجيل الدخول بنجاح ✅",
+  "logout_success": "تم تسجيل الخروج بنجاح ✅",
+  "server_error": "خطأ في الخادم ❌",
+  "invalid_language": "لغة غير صالحة ❌",
+  "language_updated": "تم تحديث اللغة ✅"
+}
