@@ -1,6 +1,6 @@
 node_modules/
-.en
+.env
 uploads/
-*log
+*.log
 dist/
 build/

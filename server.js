@@ -29,7 +29,6 @@ const __dirname = path.dirname(__filename);
 
 /* ================= UPLOADS ================= */
 
-// dossier principal uploads
 const uploadsDir = path.join(__dirname, "uploads");
 
 if (!fs.existsSync(uploadsDir)) {
@@ -49,7 +48,7 @@ app.use("/uploads", express.static(uploadsDir));
 
 console.log("📂 Uploads servis depuis :", uploadsDir);
 
-/* ================= MONGODB ATLAS (VERSION PRO) ================= */
+/* ================= MONGODB ATLAS ================= */
 
 const connectDB = async () => {
   try {
@@ -63,7 +62,7 @@ const connectDB = async () => {
   } catch (error) {
     console.error("❌ Connexion MongoDB échouée :", error.message);
 
-    // 🔁 retry auto
+    // retry auto
     setTimeout(connectDB, 5000);
   }
 };
@@ -102,7 +101,7 @@ import galerieRoutes from "./routes/galerie.js";
 import financesRoutes from "./routes/finances.js";
 import abonnementRoutes from "./routes/abonnement.js";
 
-// montage routes
+// montage routes API
 app.use("/api/admin-parametres", adminParametresRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -118,6 +117,16 @@ app.use("/api/depenses", depensesRoutes);
 app.use("/api/galerie", galerieRoutes);
 app.use("/api/finances", financesRoutes);
 app.use("/api/abonnement", abonnementRoutes);
+
+/* ================= ROUTE RACINE (AJOUT IMPORTANT) ================= */
+
+app.get("/", (req, res) => {
+  res.json({
+    message: "✅ Backend Couture API ONLINE",
+    docs: "/docs",
+    health: "/api/health",
+  });
+});
 
 /* ================= DOCS ================= */
 
