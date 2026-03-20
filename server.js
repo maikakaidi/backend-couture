@@ -17,12 +17,10 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ✅ CORS (mobile + ordinateur)
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "*",
+  credentials: true,
+}));
 
 /* ================= ES MODULE FIX ================= */
 
@@ -38,7 +36,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // sous dossiers auto
-["logos", "promos", "commandes", "galerie"].forEach((folder) => {
+["logos", "promos", "commandes", "galerie"].forEach(folder => {
   const dir = path.join(uploadsDir, folder);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -60,6 +58,7 @@ const connectDB = async () => {
     });
 
     console.log("✅ MongoDB Atlas connecté");
+
   } catch (error) {
     console.error("❌ Connexion MongoDB échouée :", error.message);
 
@@ -119,7 +118,7 @@ app.use("/api/galerie", galerieRoutes);
 app.use("/api/finances", financesRoutes);
 app.use("/api/abonnement", abonnementRoutes);
 
-/* ================= ROUTE RACINE ================= */
+/* ================= ROUTE RACINE (AJOUT IMPORTANT) ================= */
 
 app.get("/", (req, res) => {
   res.json({
@@ -131,7 +130,7 @@ app.get("/", (req, res) => {
 
 /* ================= DOCS ================= */
 
-app.use("/docs", express.static(path.join(__dirname, "docs")));
+app.use("/docs", express.static("docs"));
 
 /* ================= HEALTH CHECK ================= */
 
@@ -173,10 +172,10 @@ process.on("unhandledRejection", (reason) => {
 
 /* ================= START SERVER ================= */
 
-// ✅ IMPORTANT POUR RAILWAY / RENDER
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`🚀 Serveur démarré sur le port ${PORT}`);
-  console.log(`🖼 Images → /uploads`);
+  console.log(`💻 Local → http://localhost:${PORT}`);
+  console.log(`🖼 Images → http://localhost:${PORT}/uploads`);
 });
