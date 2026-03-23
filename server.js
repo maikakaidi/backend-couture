@@ -6,6 +6,9 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
+// ✅ Import Cloudinary config centralisée
+import cloudinary, { uploadToCloudinary } from "./utils/cloudinary.js";
+
 dotenv.config();
 mongoose.set("strictQuery", false);
 
@@ -118,7 +121,20 @@ app.use("/api/galerie", galerieRoutes);
 app.use("/api/finances", financesRoutes);
 app.use("/api/abonnement", abonnementRoutes);
 
-/* ================= ROUTE RACINE (AJOUT IMPORTANT) ================= */
+/* ================= ROUTE UPLOAD CLOUDINARY ================= */
+
+app.post("/api/upload", async (req, res) => {
+  try {
+    const { filePath } = req.body; // chemin local ou base64
+    const url = await uploadToCloudinary(filePath);
+    res.json({ url });
+  } catch (error) {
+    console.error("❌ Erreur upload Cloudinary :", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* ================= ROUTE RACINE ================= */
 
 app.get("/", (req, res) => {
   res.json({
