@@ -1,21 +1,22 @@
 import express from "express";
-import sharp from "sharp";
-import fs from "fs";
-import path from "path";
-
 import { protect, atelierUsers } from "../middlewares/authMiddleware.js";
 import { canInsert, canModifyOrDelete } from "../middlewares/permissions.js";
-
 import Commande from "../models/Commande.js";
 import Finance from "../models/Finance.js";
 import Abonnement from "../models/Abonnement.js";
-
-import upload from "../config/multer.js";
+import multer from "multer";
+import { uploadToCloudinary } from "../utils/cloudinary.js"; // ← importe la fonction Cloudinary
 
 const router = express.Router();
 
+// Configuration Multer temporaire (mémoire suffit)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
+});
+
 /* =============================
-   LISTE DES COMMANDES
+   LISTE DES COMMANDES (inchangé)
 ============================= */
 router.get("/:clientId", protect, atelierUsers, async (req, res) => {
   try {
@@ -55,27 +56,9 @@ router.post(
         return res.status(403).json({ error: "Limite de commandes atteinte ❌" });
       }
 
-      // Traitement image
       let imageUrl = null;
       if (req.file) {
-        const inputPath = req.file.path;
-        const outputDir = path.dirname(inputPath);
-        const outputFilename = "compressed-" + req.file.filename;
-        const outputPath = path.join(outputDir, outputFilename);
-
-        // Compression avec Sharp
-        await sharp(inputPath)
-          .resize({ width: 800, withoutEnlargement: true })
-          .jpeg({ quality: 80 })
-          .toFile(outputPath);
-
-        // Supprimer l'original uniquement après avoir créé le fichier compressé
-        fs.unlink(inputPath, err => {
-          if (err) console.warn("⚠️ unlink warning:", err.message);
-        });
-
-        // chemin relatif pour React
-        imageUrl = `/uploads/commandes/${outputFilename}`;
+        imageUrl = await uploadToCloudinary(req.file.buffer, 'commandes');
       }
 
       const newCommande = await Commande.create({
@@ -100,7 +83,6 @@ router.post(
       }
 
       res.status(201).json(newCommande);
-
     } catch (err) {
       console.error("❌ insertion commande:", err);
       res.status(500).json({ error: "Erreur insertion commande ❌" });
@@ -126,21 +108,7 @@ router.put(
       };
 
       if (req.file) {
-        const inputPath = req.file.path;
-        const outputDir = path.dirname(inputPath);
-        const outputFilename = "compressed-" + req.file.filename;
-        const outputPath = path.join(outputDir, outputFilename);
-
-        await sharp(inputPath)
-          .resize({ width: 800, withoutEnlargement: true })
-          .jpeg({ quality: 80 })
-          .toFile(outputPath);
-
-        fs.unlink(inputPath, err => {
-          if (err) console.warn("⚠️ unlink warning:", err.message);
-        });
-
-        updateData.image = `/uploads/commandes/${outputFilename}`;
+        updateData.image = await uploadToCloudinary(req.file.buffer, 'commandes');
       }
 
       const updatedCommande = await Commande.findOneAndUpdate(
@@ -150,7 +118,6 @@ router.put(
       );
 
       res.json(updatedCommande);
-
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Erreur modification commande ❌" });
@@ -159,7 +126,7 @@ router.put(
 );
 
 /* =============================
-   SUPPRIMER COMMANDE
+   SUPPRIMER COMMANDE (inchangé)
 ============================= */
 router.delete("/:id", protect, canModifyOrDelete, async (req, res) => {
   try {

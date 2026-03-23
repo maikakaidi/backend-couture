@@ -1,62 +1,41 @@
 import express from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import AdminParametres from "../models/AdminParametres.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js"; // ← importe la fonction qu'on a créée
 
 const router = express.Router();
 
-/* =====================================================
-   📂 Création auto dossier uploads/promos
-===================================================== */
-
-const promoDir = "uploads/promos";
-
-if (!fs.existsSync(promoDir)) {
-  fs.mkdirSync(promoDir, { recursive: true });
-}
-
-/* =====================================================
-   📸 MULTER CONFIG (UPLOAD PROMOS)
-===================================================== */
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, promoDir);
-  },
-  filename: (req, file, cb) => {
-    const unique =
-      Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  },
+// Configuration Multer temporaire (on stocke juste le fichier en mémoire ou sur disque temporaire)
+const upload = multer({
+  storage: multer.memoryStorage(), // ou diskStorage si tu préfères
+  limits: { fileSize: 5 * 1024 * 1024 }, // limite 5MB
 });
 
-const upload = multer({ storage });
-
 /* =====================================================
-   ✅ UPLOAD IMAGE PROMO
+   ✅ UPLOAD IMAGE PROMO → Cloudinary
 ===================================================== */
 
 router.post("/upload", upload.single("image"), async (req, res) => {
   try {
-    if (!req.file)
-      return res.status(400).json({ message: "Aucune image" });
+    if (!req.file) {
+      return res.status(400).json({ message: "Aucune image reçue" });
+    }
 
-    // chemin enregistré en base
-    const imagePath = `uploads/promos/${req.file.filename}`;
+    // Upload direct vers Cloudinary
+    const imageUrl = await uploadToCloudinary(req.file.buffer, "promos");
 
     res.json({
-      message: "Image uploadée ✅",
-      image: imagePath,
+      message: "Image uploadée sur Cloudinary ✅",
+      image: imageUrl, // ← URL complète HTTPS (ex: https://res.cloudinary.com/...)
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur upload" });
+    console.error("Erreur upload promo:", error);
+    res.status(500).json({ message: "Erreur lors de l'upload" });
   }
 });
 
 /* =====================================================
-   ✅ SAUVEGARDE PARAMETRES
+   ✅ SAUVEGARDE PARAMETRES (message + images défilantes)
 ===================================================== */
 
 router.post("/save", async (req, res) => {
@@ -70,13 +49,13 @@ router.post("/save", async (req, res) => {
     }
 
     parametres.messageDefilant = messageDefilant || "";
-    parametres.imagesDefilantes = imagesDefilantes || [];
+    parametres.imagesDefilantes = imagesDefilantes || []; // ← tableau d'URLs Cloudinary
 
     await parametres.save();
 
     res.json(parametres);
   } catch (error) {
-    console.error(error);
+    console.error("Erreur sauvegarde paramètres:", error);
     res.status(500).json({ message: "Erreur sauvegarde paramètres" });
   }
 });
@@ -90,7 +69,7 @@ router.get("/", async (req, res) => {
     const parametres = await AdminParametres.findOne();
     res.json(parametres || {});
   } catch (error) {
-    console.error(error);
+    console.error("Erreur récupération paramètres:", error);
     res.status(500).json({ message: "Erreur récupération" });
   }
 });
