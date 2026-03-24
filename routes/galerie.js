@@ -8,10 +8,9 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 const router = express.Router();
 
-// Multer en mémoire (plus simple avec Cloudinary)
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 } 
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 // Liste
@@ -36,11 +35,10 @@ router.post("/upload", protect, canInsert, upload.single("imageGalerie"), async 
       return res.status(403).json({ error: "Limite atteinte pour la galerie" });
     }
 
-    // Upload sur Cloudinary
     const imageUrl = await uploadToCloudinary(req.file.buffer, "galerie");
 
     const newImage = new Galerie({
-      filename: imageUrl,           // URL complète Cloudinary
+      filename: imageUrl,           // URL Cloudinary complète
       titre: req.body.titre || null,
       categorie: req.body.categorie || "Divers",
       atelierId: req.user.atelierId
