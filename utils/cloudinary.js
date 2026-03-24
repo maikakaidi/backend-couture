@@ -1,6 +1,6 @@
-// utils/cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+import stream from "stream";
 
 dotenv.config();
 
@@ -11,33 +11,26 @@ cloudinary.config({
   secure: true,
 });
 
-// Fonction d'upload optimisée pour multer (buffer)
-export const uploadToCloudinary = async (fileBuffer, folder = "couture-atelier") => {
-  try {
-    const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        { 
-          folder: folder,
-          resource_type: "image",
-          quality: "auto:good"
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result.secure_url);
-        }
-      );
+// Upload image depuis buffer multer
+export const uploadToCloudinary = (fileBuffer, folder = "couture-atelier") => {
+  return new Promise((resolve, reject) => {
 
-      const stream = require("stream");
-      const bufferStream = new stream.PassThrough();
-      bufferStream.end(fileBuffer);
-      bufferStream.pipe(uploadStream);
-    });
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+        quality: "auto:good",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
 
-    return result;
-  } catch (error) {
-    console.error("Erreur Cloudinary :", error);
-    throw new Error("Échec upload Cloudinary");
-  }
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(fileBuffer);
+    bufferStream.pipe(uploadStream);
+  });
 };
 
 export default cloudinary;
