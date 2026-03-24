@@ -20,6 +20,7 @@
     "mongodb": "^7.1.0",
     "mongoose": "^7.6.3",
     "multer": "^2.1.1",
+    "node": "^25.8.1",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
