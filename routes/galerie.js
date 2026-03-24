@@ -1,7 +1,7 @@
 import express from "express";
 import Galerie from "../models/Galerie.js";
 import { protect } from "../middlewares/authMiddleware.js";
-import { canInsert } from "../middlewares/permissions.js";
+import { canInsert, canModifyOrDelete } from "../middlewares/permissions.js";   // ← Ajout de l'import
 import Abonnement from "../models/Abonnement.js";
 import multer from "multer";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
@@ -13,17 +13,18 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// Liste
+// Liste des images
 router.get("/", protect, async (req, res) => {
   try {
     const images = await Galerie.find({ atelierId: req.user.atelierId }).sort({ createdAt: -1 });
     res.json(images);
   } catch (err) {
+    console.error("Erreur récupération galerie:", err);
     res.status(500).json({ error: "Erreur récupération galerie" });
   }
 });
 
-// Upload
+// Upload image
 router.post("/upload", protect, canInsert, upload.single("imageGalerie"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "Aucun fichier reçu" });
@@ -47,21 +48,22 @@ router.post("/upload", protect, canInsert, upload.single("imageGalerie"), async 
     await newImage.save();
 
     res.json({ 
-      message: "Image uploadée avec succès ✅", 
+      message: "Image uploadée ✅", 
       image: newImage 
     });
   } catch (err) {
     console.error("Erreur upload galerie:", err);
-    res.status(500).json({ error: "Erreur lors de l'upload de l'image" });
+    res.status(500).json({ error: "Erreur upload image" });
   }
 });
 
-// Supprimer
+// Supprimer image
 router.delete("/:id", protect, canModifyOrDelete, async (req, res) => {
   try {
     await Galerie.findOneAndDelete({ _id: req.params.id, atelierId: req.user.atelierId });
     res.json({ message: "Image supprimée ✅" });
   } catch (err) {
+    console.error("Erreur suppression:", err);
     res.status(500).json({ error: "Erreur suppression image" });
   }
 });
