@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 
-// ✅ Import Cloudinary (déjà configuré)
-import "./utils/cloudinary.js";   // juste pour charger la config
+// Import Cloudinary config
+import "./utils/cloudinary.js";
 
 dotenv.config();
 
@@ -22,10 +22,7 @@ app.use(cors({
 /* ================= MONGODB ================= */
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-    });
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB Atlas connecté");
   } catch (error) {
     console.error("❌ Connexion MongoDB échouée :", error.message);
@@ -52,8 +49,7 @@ import galerieRoutes from "./routes/galerie.js";
 import financesRoutes from "./routes/finances.js";
 import abonnementRoutes from "./routes/abonnement.js";
 
-// Montage des routes
-app.use("/api/admin-parametres", adminParametresRoutes);
+// Montage correct des routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin-setup", adminSetupRoutes);
@@ -65,40 +61,35 @@ app.use("/api/parametres", parametresRoutes);
 app.use("/api/articles", articlesRoutes);
 app.use("/api/ventes", ventesRoutes);
 app.use("/api/depenses", depensesRoutes);
-app.use("/api/galerie", galerieRoutes);
+app.use("/api/galerie", galerieRoutes);        // ← Important
 app.use("/api/finances", financesRoutes);
 app.use("/api/abonnement", abonnementRoutes);
+app.use("/api/admin-parametres", adminParametresRoutes);
 
-/* ================= ROUTE RACINE & HEALTH ================= */
+/* ================= ROUTES DE BASE ================= */
 app.get("/", (req, res) => {
-  res.json({
-    message: "✅ Backend Couture API ONLINE - Cloudinary Mode",
-    status: "ok"
-  });
+  res.json({ message: "✅ Backend Couture API ONLINE - Cloudinary Mode" });
 });
 
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    uptime: process.uptime(),
-    mongo: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+  res.json({ 
+    status: "ok", 
+    mongo: mongoose.connection.readyState === 1 ? "connected" : "disconnected" 
   });
 });
 
-/* ================= 404 & ERROR HANDLER ================= */
+/* ================= 404 & ERROR ================= */
 app.use((req, res) => {
   res.status(404).json({ error: "Route non trouvée ❌" });
 });
 
 app.use((err, req, res, next) => {
-  console.error("❌ Erreur serveur :", err.stack);
-  res.status(500).json({ error: err.message || "Erreur interne du serveur" });
+  console.error("❌ Erreur serveur :", err);
+  res.status(500).json({ error: "Erreur interne du serveur" });
 });
 
-/* ================= START SERVER ================= */
+/* ================= START ================= */
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur le port ${PORT}`);
-  console.log(`🌐 Backend → https://backend-couture-production.up.railway.app`);
+  console.log(`🚀 Serveur démarré sur port ${PORT}`);
 });
