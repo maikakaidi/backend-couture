@@ -11,33 +11,32 @@ cloudinary.config({
   secure: true,
 });
 
-// Fonction adaptée pour multer (buffer en mémoire)
+// Fonction d'upload optimisée pour multer (buffer)
 export const uploadToCloudinary = async (fileBuffer, folder = "couture-atelier") => {
   try {
-    const result = await cloudinary.uploader.upload_stream(
-      { 
-        folder: folder,
-        resource_type: "image",
-        quality: "auto",
-      },
-      (error, result) => {
-        if (error) throw error;
-      }
-    );
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { 
+          folder: folder,
+          resource_type: "image",
+          quality: "auto:good"
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result.secure_url);
+        }
+      );
 
-    // Convertir buffer en stream
-    const stream = require("stream");
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(fileBuffer);
-    bufferStream.pipe(result);
-
-    return new Promise((resolve, reject) => {
-      result.on("finish", () => resolve(result.secure_url));
-      result.on("error", reject);
+      const stream = require("stream");
+      const bufferStream = new stream.PassThrough();
+      bufferStream.end(fileBuffer);
+      bufferStream.pipe(uploadStream);
     });
+
+    return result;
   } catch (error) {
     console.error("Erreur Cloudinary :", error);
-    throw error;
+    throw new Error("Échec upload Cloudinary");
   }
 };
 

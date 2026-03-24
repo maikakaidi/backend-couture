@@ -1,7 +1,7 @@
 import express from "express";
 import Galerie from "../models/Galerie.js";
 import { protect } from "../middlewares/authMiddleware.js";
-import { canInsert, canModifyOrDelete } from "../middlewares/permissions.js";
+import { canInsert } from "../middlewares/permissions.js";
 import Abonnement from "../models/Abonnement.js";
 import multer from "multer";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
@@ -38,7 +38,7 @@ router.post("/upload", protect, canInsert, upload.single("imageGalerie"), async 
     const imageUrl = await uploadToCloudinary(req.file.buffer, "galerie");
 
     const newImage = new Galerie({
-      filename: imageUrl,           // URL Cloudinary complète
+      filename: imageUrl,
       titre: req.body.titre || null,
       categorie: req.body.categorie || "Divers",
       atelierId: req.user.atelierId
@@ -47,12 +47,12 @@ router.post("/upload", protect, canInsert, upload.single("imageGalerie"), async 
     await newImage.save();
 
     res.json({ 
-      message: "Image uploadée ✅", 
+      message: "Image uploadée avec succès ✅", 
       image: newImage 
     });
   } catch (err) {
     console.error("Erreur upload galerie:", err);
-    res.status(500).json({ error: "Erreur upload image" });
+    res.status(500).json({ error: "Erreur lors de l'upload de l'image" });
   }
 });
 
