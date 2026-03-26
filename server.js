@@ -13,11 +13,12 @@ const app = express();
 /* ================= MIDDLEWARE ================= */
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-
 app.use(cors({
   origin: "*",
-  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
 
 /* ================= MONGODB ================= */
 const connectDB = async () => {
